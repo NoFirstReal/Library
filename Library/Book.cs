@@ -23,6 +23,24 @@ namespace Library
             AvailableFormats = new HashSet<BookFormat> { initialFormat };
         }
 
+        public override bool Equals(object obj)
+        {
+            if (obj is Book other)
+            {
+                return Title.Equals(other.Title, StringComparison.OrdinalIgnoreCase) &&
+                       Author.Equals(other.Author, StringComparison.OrdinalIgnoreCase) &&
+                       YearPublished == other.YearPublished;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return (Title.ToLowerInvariant() + 
+                    Author.ToLowerInvariant() + 
+                    YearPublished.ToString()).GetHashCode();
+        }
+
         public override string ToString()
         {
             string formats = string.Join(", ", AvailableFormats);

@@ -50,6 +50,8 @@
             this.cmbTargetFormat = new System.Windows.Forms.ComboBox();
             this.grpConvert = new System.Windows.Forms.GroupBox();
             this.label5 = new System.Windows.Forms.Label();
+            this.button1 = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
             this.grpConvert.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -118,7 +120,7 @@
             this.btnAdd.BackColor = System.Drawing.Color.Gray;
             this.btnAdd.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F);
             this.btnAdd.ForeColor = System.Drawing.Color.Black;
-            this.btnAdd.Location = new System.Drawing.Point(264, 293);
+            this.btnAdd.Location = new System.Drawing.Point(234, 293);
             this.btnAdd.Name = "btnAdd";
             this.btnAdd.Size = new System.Drawing.Size(187, 41);
             this.btnAdd.TabIndex = 5;
@@ -131,7 +133,7 @@
             this.btnRemove.BackColor = System.Drawing.Color.Gray;
             this.btnRemove.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F);
             this.btnRemove.ForeColor = System.Drawing.Color.Black;
-            this.btnRemove.Location = new System.Drawing.Point(478, 293);
+            this.btnRemove.Location = new System.Drawing.Point(462, 293);
             this.btnRemove.Name = "btnRemove";
             this.btnRemove.Size = new System.Drawing.Size(187, 41);
             this.btnRemove.TabIndex = 6;
@@ -157,7 +159,7 @@
             this.btnSearchByAuthor.BackColor = System.Drawing.Color.Gray;
             this.btnSearchByAuthor.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F);
             this.btnSearchByAuthor.ForeColor = System.Drawing.Color.Black;
-            this.btnSearchByAuthor.Location = new System.Drawing.Point(264, 373);
+            this.btnSearchByAuthor.Location = new System.Drawing.Point(234, 373);
             this.btnSearchByAuthor.Name = "btnSearchByAuthor";
             this.btnSearchByAuthor.Size = new System.Drawing.Size(289, 41);
             this.btnSearchByAuthor.TabIndex = 8;
@@ -207,7 +209,7 @@
             this.btnImport.BackColor = System.Drawing.Color.Gray;
             this.btnImport.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F);
             this.btnImport.ForeColor = System.Drawing.Color.Black;
-            this.btnImport.Location = new System.Drawing.Point(264, 446);
+            this.btnImport.Location = new System.Drawing.Point(479, 446);
             this.btnImport.Name = "btnImport";
             this.btnImport.Size = new System.Drawing.Size(228, 41);
             this.btnImport.TabIndex = 13;
@@ -233,7 +235,7 @@
             this.btnExport.BackColor = System.Drawing.Color.Gray;
             this.btnExport.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F);
             this.btnExport.ForeColor = System.Drawing.Color.Black;
-            this.btnExport.Location = new System.Drawing.Point(509, 446);
+            this.btnExport.Location = new System.Drawing.Point(234, 446);
             this.btnExport.Name = "btnExport";
             this.btnExport.Size = new System.Drawing.Size(209, 41);
             this.btnExport.TabIndex = 15;
@@ -307,12 +309,40 @@
             this.label5.TabIndex = 21;
             this.label5.Text = "Формат";
             // 
+            // button1
+            // 
+            this.button1.BackColor = System.Drawing.Color.Gray;
+            this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F);
+            this.button1.ForeColor = System.Drawing.Color.Black;
+            this.button1.Location = new System.Drawing.Point(234, 493);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(209, 41);
+            this.button1.TabIndex = 22;
+            this.button1.Text = "Экспорт в Word";
+            this.button1.UseVisualStyleBackColor = false;
+            this.button1.Click += new System.EventHandler(this.btnExportWord_Click);
+            // 
+            // button2
+            // 
+            this.button2.BackColor = System.Drawing.Color.Gray;
+            this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F);
+            this.button2.ForeColor = System.Drawing.Color.Black;
+            this.button2.Location = new System.Drawing.Point(234, 540);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(194, 41);
+            this.button2.TabIndex = 23;
+            this.button2.Text = "Экспорт в PDF";
+            this.button2.UseVisualStyleBackColor = false;
+            this.button2.Click += new System.EventHandler(this.btnExportPdf_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
-            this.ClientSize = new System.Drawing.Size(959, 550);
+            this.ClientSize = new System.Drawing.Size(959, 682);
+            this.Controls.Add(this.button2);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.grpConvert);
             this.Controls.Add(this.cmbFormat);
@@ -333,8 +363,8 @@
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
-            this.MaximumSize = new System.Drawing.Size(975, 589);
-            this.MinimumSize = new System.Drawing.Size(975, 589);
+            this.MaximumSize = new System.Drawing.Size(975, 721);
+            this.MinimumSize = new System.Drawing.Size(975, 721);
             this.Name = "Form1";
             this.Text = "Form1";
             this.grpConvert.ResumeLayout(false);
@@ -367,6 +397,8 @@
         private System.Windows.Forms.ComboBox cmbTargetFormat;
         private System.Windows.Forms.GroupBox grpConvert;
         private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button button2;
     }
 }
 

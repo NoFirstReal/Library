@@ -12,6 +12,9 @@ namespace Library
     {
         private User currentUser;
         private readonly BookManager bookManager;
+        private PictureBox pictureBoxQR;
+        private Button btnExportPdf;
+        private Button btnExportWord;
 
         public Form1(User user = null)
         {
@@ -33,6 +36,8 @@ namespace Library
 
             btnImport.Click += btnImport_Click;
             btnExport.Click += btnExport_Click;
+
+            InitializeAdditionalControls();
         }
 
         private void EnableAdminControls(bool isAdmin)
@@ -41,6 +46,27 @@ namespace Library
             if (btnRemove != null) btnRemove.Enabled = isAdmin;
             if (btnExport != null) btnExport.Enabled = isAdmin;
             if (grpConvert != null) grpConvert.Enabled = isAdmin;
+        }
+
+        private void InitializeAdditionalControls()
+        {
+            // QR Code
+            pictureBoxQR = new PictureBox();
+            pictureBoxQR.Location = new System.Drawing.Point(450, 500);
+            pictureBoxQR.Size = new System.Drawing.Size(200, 150);
+            pictureBoxQR.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureBoxQR.Image = bookManager.GenerateQRCode();
+            Controls.Add(pictureBoxQR);
+        }
+
+        private void UpdateBooksList()
+        {
+            lstBooks.Items.Clear();
+            var books = bookManager.GetAllBooks();
+            foreach (var book in books)
+            {
+                lstBooks.Items.Add(book);
+            }
         }
 
         private void btnImport_Click(object sender, EventArgs e)
@@ -55,21 +81,6 @@ namespace Library
                     UpdateBooksList();
                 }
             }
-        }
-
-        private void UpdateBooksList()
-        {
-            lstBooks.Items.Clear();
-            var books = bookManager.GetAllBooks();
-            foreach (var book in books)
-            {
-                lstBooks.Items.Add(book);
-            }
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            UpdateBooksList();
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
@@ -217,6 +228,32 @@ namespace Library
             else
             {
                 MessageBox.Show("Выберите книгу для конвертации.");
+            }
+        }
+
+        private void btnExportPdf_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
+            {
+                saveFileDialog.Filter = "PDF files (*.pdf)|*.pdf";
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    bookManager.ExportToPdf(saveFileDialog.FileName);
+                    MessageBox.Show("PDF exported successfully!");
+                }
+            }
+        }
+
+        private void btnExportWord_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
+            {
+                saveFileDialog.Filter = "Word files (*.docx)|*.docx";
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    bookManager.ExportToWord(saveFileDialog.FileName);
+                    MessageBox.Show("Word document exported successfully!");
+                }
             }
         }
     }
