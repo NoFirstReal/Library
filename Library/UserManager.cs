@@ -8,25 +8,16 @@ namespace Library
 {
     public class UserManager
     {
-        private List<User> users;
+        private readonly DatabaseManager _dbManager;
 
         public UserManager()
         {
-            users = new List<User>
-            {
-                new User("admin", "1", true),
-                new User("user", "2", false)
-            };
+            _dbManager = new DatabaseManager();
         }
 
         public User Authenticate(string username, string password)
         {
-            var user = users.FirstOrDefault(u => u.Username == username);
-            if (user != null && user.CheckPassword(password))
-            {
-                return user;
-            }
-            return null;
+            return _dbManager.GetUser(username, password);
         }
     }
 }

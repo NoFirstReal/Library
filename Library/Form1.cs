@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace Library
 {
@@ -13,8 +14,6 @@ namespace Library
         private User currentUser;
         private readonly BookManager bookManager;
         private PictureBox pictureBoxQR;
-        private Button btnExportPdf;
-        private Button btnExportWord;
 
         public Form1(User user = null)
         {
@@ -40,6 +39,20 @@ namespace Library
             InitializeAdditionalControls();
         }
 
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            
+            // Настраиваем Chart
+            chartRating.Series.Clear();
+            var series = new Series("Рейтинг");
+            series.ChartType = SeriesChartType.Column;
+            chartRating.Series.Add(series);
+            
+            // Добавляем обработчик выбора книги
+            lstBooks.SelectedIndexChanged += lstBooks_SelectedIndexChanged;
+        }
+
         private void EnableAdminControls(bool isAdmin)
         {
             if (btnImport != null) btnImport.Enabled = isAdmin;
@@ -61,11 +74,18 @@ namespace Library
 
         private void UpdateBooksList()
         {
-            lstBooks.Items.Clear();
-            var books = bookManager.GetAllBooks();
-            foreach (var book in books)
+            try
             {
-                lstBooks.Items.Add(book);
+                lstBooks.Items.Clear();
+                var books = bookManager.GetAllBooks();
+                foreach (var book in books)
+                {
+                    lstBooks.Items.Add(book);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при обновлении списка книг: {ex.Message}");
             }
         }
 
@@ -76,54 +96,90 @@ namespace Library
                 openFileDialog.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*";
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    bookManager.ImportBooksFromCsv(openFileDialog.FileName);
-                    MessageBox.Show("Книги успешно импортированы!");
-                    UpdateBooksList();
+                    try
+                    {
+                        bookManager.ImportBooksFromCsv(openFileDialog.FileName);
+                        MessageBox.Show("Книги успешно импортированы! Дубликаты были пропущены.");
+                        UpdateBooksList();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Ошибка при импорте: {ex.Message}");
+                    }
                 }
             }
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
         {
-            string title = txtTitle.Text;
-            string author = txtAuthor.Text;
-            if (int.TryParse(txtYear.Text, out int year))
+            string title = txtTitle.Text.Trim();
+            string author = txtAuthor.Text.Trim();
+            
+            if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(author))
             {
-                if (Enum.TryParse<BookFormat>(cmbFormat.SelectedItem.ToString(), out BookFormat format))
-                {
-                    bookManager.AddBook(title, author, year, format);
-                    MessageBox.Show("Книга добавлена!");
-                    UpdateBooksList();
-                }
-            }
-            else
-            {
-                MessageBox.Show("Введите корректный год издания.");
+                MessageBox.Show("Пожалуйста, заполните название и автора книги.");
+                return;
             }
 
-            txtTitle.Clear();
-            txtAuthor.Clear();
-            txtYear.Clear();
+            if (!int.TryParse(txtYear.Text, out int year))
+            {
+                MessageBox.Show("Пожалуйста, введите корректный год издания.");
+                return;
+            }
+
+            if (cmbFormat.SelectedItem == null)
+            {
+                MessageBox.Show("Пожалуйста, выберите формат книги.");
+                return;
+            }
+
+            if (Enum.TryParse<BookFormat>(cmbFormat.SelectedItem.ToString(), out BookFormat format))
+            {
+                try
+                {
+                    if (bookManager.AddBook(title, author, year, format))
+                    {
+                        MessageBox.Show("Книга успешно добавлена!");
+                        ClearInputFields();
+                        UpdateBooksList();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Ошибка при добавлении книги.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Произошла ошибка: {ex.Message}");
+                }
+            }
         }
 
         private void btnRemove_Click(object sender, EventArgs e)
         {
             if (lstBooks.SelectedItem is Book selectedBook)
             {
-                bool success = bookManager.RemoveBook(selectedBook.Id);
-                if (success)
+                try
                 {
-                    MessageBox.Show("Книга удалена!");
-                    UpdateBooksList();
+                    if (bookManager.RemoveBook(selectedBook.Id))
+                    {
+                        MessageBox.Show("Книга успешно удалена!");
+                        UpdateBooksList();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Ошибка при удалении книги.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Произошла ошибка: {ex.Message}");
                 }
             }
             else
             {
-                MessageBox.Show("Выберите книгу для удаления.");
+                MessageBox.Show("Пожалуйста, выберите книгу для удаления.");
             }
-            txtTitle.Clear();
-            txtAuthor.Clear();
-            txtYear.Clear();
         }
 
         private void btnSearchByTitle_Click(object sender, EventArgs e)
@@ -254,6 +310,143 @@ namespace Library
                     bookManager.ExportToWord(saveFileDialog.FileName);
                     MessageBox.Show("Word document exported successfully!");
                 }
+            }
+        }
+
+        private void ClearInputFields()
+        {
+            txtTitle.Clear();
+            txtAuthor.Clear();
+            txtYear.Clear();
+            cmbFormat.SelectedIndex = -1;
+        }
+
+        private void lstBooks_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (lstBooks.SelectedItem is Book selectedBook)
+            {
+                // Получаем статистику для выбранной книги
+                var stats = bookManager.GetBookStatistics(selectedBook.Id.ToString());
+                UpdateRatingChart(stats);
+                
+                // Проверяем, прочитана ли книга текущим пользователем
+                bool isRead = bookManager.IsBookReadByUser(currentUser.Id.ToString(), selectedBook.Id.ToString());
+                numericRating.Enabled = isRead;
+                btnRate.Enabled = isRead;
+
+                // Получаем прогресс чтения
+                var currentPage = bookManager.GetBookReadingProgress(currentUser.Id.ToString(), selectedBook.Id.ToString());
+                if (currentPage.HasValue)
+                {
+                    numericCurrentPage.Value = currentPage.Value;
+                    numericCurrentPage.Enabled = true;
+                }
+                else
+                {
+                    numericCurrentPage.Value = numericCurrentPage.Minimum;
+                    numericCurrentPage.Enabled = false;
+                }
+            }
+        }
+
+        private void UpdateRatingChart(Dictionary<string, double> stats)
+        {
+            chartRating.Series.Clear();
+            var series = new Series("Рейтинг");
+            series.ChartType = SeriesChartType.Column;
+
+            // Добавляем данные в диаграмму
+            series.Points.AddXY("Средняя оценка", stats["average_rating"]);
+            series.Points.AddXY("Прочитали", stats["completed_count"]);
+            series.Points.AddXY("Читают", stats["reading_count"]);
+            series.Points.AddXY("Хотят прочитать", stats["want_to_read_count"]);
+
+            chartRating.Series.Add(series);
+            chartRating.Visible = true;
+        }
+
+        private void btnMarkAsRead_Click(object sender, EventArgs e)
+        {
+            if (lstBooks.SelectedItem is Book selectedBook)
+            {
+                try
+                {
+                    bookManager.UpdateBookStatus(
+                        currentUser.Id.ToString(),
+                        selectedBook.Id.ToString(),
+                        "completed"
+                    );
+                    MessageBox.Show("Книга отмечена как прочитанная!");
+                    numericRating.Enabled = true;
+                    btnRate.Enabled = true;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка при обновлении статуса книги: {ex.Message}");
+                }
+            }
+            else
+            {
+                MessageBox.Show("Пожалуйста, выберите книгу.");
+            }
+        }
+
+        private void btnRate_Click(object sender, EventArgs e)
+        {
+            if (lstBooks.SelectedItem is Book selectedBook)
+            {
+                try
+                {
+                    int rating = (int)numericRating.Value;
+                    bookManager.UpdateBookStatus(
+                        currentUser.Id.ToString(),
+                        selectedBook.Id.ToString(),
+                        "completed",
+                        rating
+                    );
+                    MessageBox.Show("Оценка сохранена!");
+                    
+                    // Обновляем статистику
+                    var stats = bookManager.GetBookStatistics(selectedBook.Id.ToString());
+                    UpdateRatingChart(stats);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка при сохранении оценки: {ex.Message}");
+                }
+            }
+        }
+
+        private void btnFeedback_Click(object sender, EventArgs e)
+        {
+            var feedbackForm = new FeedbackForm(currentUser);
+            feedbackForm.ShowDialog();
+        }
+
+        private void btnMarkAsReading_Click(object sender, EventArgs e)
+        {
+            if (lstBooks.SelectedItem is Book selectedBook)
+            {
+                try
+                {
+                    bookManager.UpdateBookStatus(
+                        currentUser.Id.ToString(),
+                        selectedBook.Id.ToString(),
+                        "reading",
+                        null,
+                        (int)numericCurrentPage.Value
+                    );
+                    MessageBox.Show("Статус книги обновлен!");
+                    numericCurrentPage.Enabled = true;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка при обновлении статуса книги: {ex.Message}");
+                }
+            }
+            else
+            {
+                MessageBox.Show("Пожалуйста, выберите книгу.");
             }
         }
     }

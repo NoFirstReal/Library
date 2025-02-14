@@ -4,10 +4,10 @@ namespace Library
 {
     public enum BookFormat
     {
-        PDF,
-        DOCX,
-        TXT,
-        EPUB,
-        FB2
+        Hardcover,
+        Paperback,
+        EBook,
+        AudioBook,
+        PDF
     }
 }

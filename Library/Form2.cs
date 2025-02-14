@@ -5,7 +5,7 @@ namespace Library
 {
     public partial class Form2 : Form
     {
-        private UserManager userManager;
+        private readonly UserManager userManager;
 
         public Form2()
         {
@@ -15,25 +15,39 @@ namespace Library
 
         private void btnLogin_Click(object sender, EventArgs e)
         {
-            string username = txtUsername.Text;
+            string username = txtUsername.Text.Trim();
             string password = txtPassword.Text;
 
-            User user = userManager.Authenticate(username, password);
-
-            if (user != null)
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
-                MessageBox.Show("Вход выполнен!");
-
-                // Открываем Form1 и передаем текущего пользователя
-                Form1 mainForm = new Form1(user);
-                mainForm.Show();
-
-                this.Hide(); // Скрываем форму авторизации
+                MessageBox.Show("Пожалуйста, введите имя пользователя и пароль.");
+                return;
             }
-            else
+
+            try
             {
-                MessageBox.Show("Неверный логин или пароль.");
+                var user = userManager.Authenticate(username, password);
+                if (user != null)
+                {
+                    var mainForm = new Form1(user);
+                    this.Hide();
+                    mainForm.FormClosed += (s, args) => this.Close();
+                    mainForm.Show();
+                }
+                else
+                {
+                    MessageBox.Show("Неверное имя пользователя или пароль.");
+                }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при авторизации: {ex.Message}");
+            }
+        }
+
+        private void btnCancel_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
         }
     }
 }
